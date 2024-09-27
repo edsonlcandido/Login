@@ -1,4 +1,7 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject Services.AuthService AuthService
+@inject NavigationManager Navigation
 
 <PageTitle>Index</PageTitle>
 
@@ -6,4 +9,43 @@
 
 Welcome to your new app.
 
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText @bind-Value="loginModel.Username" placeholder="Username"/><br />
+    <InputText @bind-Value="loginModel.Password" placeholder="Password" type="password"/><br/>
+
+    <button type="submit">Login</button>
+</EditForm>
+@if(returnToken != "")
+{
+    <p>Token: @returnToken</p>
+}
+
 <SurveyPrompt Title="How is Blazor working for you?" />
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+
+    private string returnToken = "";
+
+    private async Task HandleLogin()
+    {
+        var token = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
+        if (!string.IsNullOrEmpty(token))
+        {
+            // Armazenar o token e navegar para uma página protegida
+            // Para simplicidade, este exemplo apenas navega para a mesma página
+            Navigation.NavigateTo("/");
+        }
+        returnToken = token;
+        StateHasChanged();
+    }
+
+    private class LoginModel
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+}
