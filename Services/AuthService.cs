@@ -5,13 +5,16 @@ namespace Login.Services
     public class AuthService
     {
         private readonly HttpClient _httpClient;
-        public AuthService(HttpClient httpClient)
+        private readonly IConfiguration _configuraion;
+        public AuthService(HttpClient httpClient, IConfiguration configuraion)
         {
             _httpClient = httpClient;
+            _configuraion = configuraion;
         }
 
         public async Task<string> LoginAsync(string username, string password)
         {
+            var baseUrl = _configuraion["ApiBaseUrl"];
             var response = await _httpClient.PostAsJsonAsync("https://api.edsonluizcandido.com.br/api/collections/users/auth-with-password",
                 new { 
                     identity = username, 
