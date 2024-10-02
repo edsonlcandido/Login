@@ -12,7 +12,7 @@ namespace Login.Services
 
         public async Task<string> LoginAsync(string username, string password)
         {
-            var response = await _httpClient.PostAsJsonAsync("https://api.edsonluizcandido.com.br/api/collections/users/auth-with-password",
+            var response = await _httpClient.PostAsJsonAsync("https://backend-api-login.k7pddx.easypanel.host/api/collections/users/auth-with-password",
                 new { 
                     identity = username, 
                     password = password
