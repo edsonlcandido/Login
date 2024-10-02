@@ -1,12 +1,13 @@
-using Login.Data;
-using Login.Services;
+using LoginApp.Data;
+using LoginApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace Login
+namespace LoginApp
 {
     public class Program
     {
@@ -17,24 +18,10 @@ namespace Login
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
+            builder.Services.AddScoped<AuthenticationStateProvider,CustomAuthenticationStateProvider>();
+            builder.Services.AddAuthorizationCore();
             builder.Services.AddSingleton<WeatherForecastService>();
-            builder.Services.AddHttpClient();
             builder.Services.AddHttpClient<AuthService>();
-
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = "api-ligas-issuer",
-                        ValidAudience = "api-ligas-audience",
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("supersecretkey"))
-                    };
-                });
 
             var app = builder.Build();
 

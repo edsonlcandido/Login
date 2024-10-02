@@ -1,6 +1,6 @@
 ﻿
 
-namespace Login.Services
+namespace LoginApp.Services
 {
     public class AuthService
     {
@@ -15,11 +15,11 @@ namespace Login.Services
         public async Task<string> LoginAsync(string username, string password)
         {
             var baseUrl = _configuraion["ApiBaseUrl"];
-            var response = await _httpClient.PostAsJsonAsync("https://api.edsonluizcandido.com.br/api/collections/users/auth-with-password",
+            var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/collections/users/auth-with-password",
                 new { 
                     identity = username, 
                     password = password
-                }
+                    }
                 );
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<LoginResult>();

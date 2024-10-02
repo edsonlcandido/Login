@@ -5,47 +5,10 @@
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Bem vindo ao meu sistema de login</h1>
 
-Welcome to your new app.
-
-<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <InputText @bind-Value="loginModel.Username" placeholder="Username"/><br />
-    <InputText @bind-Value="loginModel.Password" placeholder="Password" type="password"/><br/>
-
-    <button type="submit">Login</button>
-</EditForm>
-@if(returnToken != "")
-{
-    <p>Token: @returnToken</p>
-}
-
-<SurveyPrompt Title="How is Blazor working for you?" />
+<p>Nessa página inplemnteo um sistema de autenticação e autorização usando um BaS com PocketBase</p>
 
 @code {
-    private LoginModel loginModel = new LoginModel();
 
-    private string returnToken = "";
-
-    private async Task HandleLogin()
-    {
-        var token = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
-        if (!string.IsNullOrEmpty(token))
-        {
-            // Armazenar o token e navegar para uma página protegida
-            // Para simplicidade, este exemplo apenas navega para a mesma página
-            Navigation.NavigateTo("/");
-        }
-        returnToken = token;
-        StateHasChanged();
-    }
-
-    private class LoginModel
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
-    }
 }

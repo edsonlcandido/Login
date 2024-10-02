@@ -1,0 +1,46 @@
+﻿@page "/login"
+@using LoginApp.Services
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject LoginApp.Services.AuthService AuthService
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Login</h3> 
+<EditForm Model="loginModel" OnSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <InputText @bind-Value="loginModel.Username" placeholder="Username" /><br />
+    <InputText @bind-Value="loginModel.Password" placeholder="Password" type="password" /><br />
+
+    <button type="submit">Login</button>
+    
+</EditForm>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+
+    private async Task HandleLogin()
+    {
+        var token = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
+        if (!string.IsNullOrEmpty(token))
+        {
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+            AuthenticationStateProvider.MarkUserAsAuthenticated(token);
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            AuthenticationStateProvider.MarkAsInitialized();
+        }
+    }
+
+    private class LoginModel
+    {
+        public string? Username { get; set; }
+        public string? Password { get; set; }
+    }
+}
