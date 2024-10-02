@@ -17,17 +17,20 @@ namespace LoginApp.Services
         {
             if (!_isInitialized)
             {
+                Console.WriteLine("Autenticação não inicializada");
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
 
             var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
             if (string.IsNullOrEmpty(token))
             {
+                Console.WriteLine("Token não encontrado");
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
             var claims = ParseClaimsFromJwt(token);
             var identity = new ClaimsIdentity(claims, "jwt");
             var user = new ClaimsPrincipal(identity);
+            Console.WriteLine("Usuário autenticado");
             return new AuthenticationState(user);
         }
 
@@ -39,9 +42,18 @@ namespace LoginApp.Services
 
         public void MarkUserAsAuthenticated(string token)
         {
+            if (string.IsNullOrEmpty(token) || !IsValidBase64String(token))
+            {
+                throw new FormatException("Token JWT inválido.");
+            }
             var claims = ParseClaimsFromJwt(token);
             var identity = new ClaimsIdentity(claims, "jwt");
             var user = new ClaimsPrincipal(identity);
+        }
+        private bool IsValidBase64String(string base64)
+        {
+            Span<byte> buffer = new Span<byte>(new byte[base64.Length]);
+            return Convert.TryFromBase64String(base64, buffer, out _);
         }
 
         private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)

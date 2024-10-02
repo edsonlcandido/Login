@@ -18,7 +18,8 @@ namespace LoginApp
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
-            builder.Services.AddScoped<AuthenticationStateProvider,CustomAuthenticationStateProvider>();
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+            builder.Services.AddScoped<CustomAuthenticationStateProvider>();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddSingleton<WeatherForecastService>();
             builder.Services.AddHttpClient<AuthService>();

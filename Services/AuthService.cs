@@ -14,7 +14,7 @@ namespace LoginApp.Services
 
         public async Task<string> LoginAsync(string username, string password)
         {
-            var baseUrl = _configuraion["ApiBaseUrl"];
+            var baseUrl = _configuraion["ApiSettings:BaseUrl"];
             var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/collections/users/auth-with-password",
                 new { 
                     identity = username, 
@@ -23,6 +23,10 @@ namespace LoginApp.Services
                 );
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<LoginResult>();
+            if (result?.Token == null)
+            {
+                throw new InvalidOperationException("Token não encontrado na resposta.");
+            }
             return result.Token;
         }
     }
@@ -30,5 +34,5 @@ namespace LoginApp.Services
 
 public class LoginResult
 {
-    public string Token { get; set; }
+    public string? Token { get; set; }
 }
