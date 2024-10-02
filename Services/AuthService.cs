@@ -1,18 +1,21 @@
 ﻿
-
+using DotNetEnv;
 namespace Login.Services
 {
     public class AuthService
     {
         private readonly HttpClient _httpClient;
+        private readonly string _backendUri;
         public AuthService(HttpClient httpClient)
         {
+            Env.Load();
             _httpClient = httpClient;
+            _backendUri = Env.GetString("BACKEND_URI");
         }
 
         public async Task<string> LoginAsync(string username, string password)
         {
-            var response = await _httpClient.PostAsJsonAsync("https://api.edsonluizcandido.com.br/api/collections/users/auth-with-password",
+            var response = await _httpClient.PostAsJsonAsync($"{_backendUri}/api/collections/users/auth-with-password",
                 new { 
                     identity = username, 
                     password = password
