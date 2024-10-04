@@ -9,20 +9,6 @@
 
 Welcome to your new app.
 
-<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <InputText @bind-Value="loginModel.Username" placeholder="Username"/><br />
-    <InputText @bind-Value="loginModel.Password" placeholder="Password" type="password"/><br/>
-
-    <button type="submit">Login</button>
-</EditForm>
-@if(returnToken != "")
-{
-    <p>Token: @returnToken</p>
-}
-
 <SurveyPrompt Title="How is Blazor working for you?" />
 
 @code {

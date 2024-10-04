@@ -1,0 +1,55 @@
+﻿@page "/Login"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject Services.AuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Login</PageTitle>
+
+<div class="text-center">
+    <div class="form-signin">
+        <h3>Login</h3>
+        <hr />
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-group">
+                <label for="exampleInputEmail1">Email address</label>
+                <InputText @bind-Value="loginModel.Username" placeholder="Username" class="form-control" /><br />
+            </div>
+            <div class="form-group">
+                <label for="exampleInputPassword1">Password</label>
+                <InputText @bind-Value="loginModel.Password" placeholder="Password" type="password" class="form-control" /><br />
+            </div>
+            <button type="submit" class="btn btn-lg btn-primary">Login</button>
+        </EditForm>
+    </div>
+    @if (returnToken != "")
+    {
+        <p class="token-container">Token: @returnToken</p>
+    }
+</div>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+
+    private string returnToken = "";
+
+    private async Task HandleLogin()
+    {
+        var token = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
+        if (!string.IsNullOrEmpty(token))
+        {
+            // Armazenar o token e navegar para uma página protegida
+            // Para simplicidade, este exemplo apenas navega para a mesma página
+            //Navigation.NavigateTo("/");
+        }
+        returnToken = token;
+        StateHasChanged();
+    }
+
+    private class LoginModel
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+}

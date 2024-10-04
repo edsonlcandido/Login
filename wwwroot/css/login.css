@@ -1,0 +1,11 @@
+﻿.form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+}
+.token-container {
+    word-wrap: break-word;
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
