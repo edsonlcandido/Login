@@ -9,7 +9,8 @@ namespace LoginApp.Data
     {
         private readonly AuthService _authenticationService;
         private readonly ILogger<CustomAuthenticationStateProvider> _logger;
-        private string _token;
+        private string? _token;
+        private string? _username;
 
         public CustomAuthenticationStateProvider(AuthService authenticationService, ILogger<CustomAuthenticationStateProvider> logger)
         {
@@ -18,13 +19,15 @@ namespace LoginApp.Data
         }
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
+            _logger.LogInformation("Getting authentication state");
             var identity = new ClaimsIdentity();
 
             if (!string.IsNullOrEmpty(_token))
             {
+                _logger.LogInformation("Token found for user {Username}", _username);
                 identity = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Name, "User"), // Ajuste conforme necessário
+                    new Claim(ClaimTypes.Name, _username), // Ajuste conforme necessário
                     new Claim("Token", _token)
                 }, "apiauth_type");
             }
@@ -38,9 +41,10 @@ namespace LoginApp.Data
             if (token != null)
             {
                 _token = token;
+                _username = username;
                 var identity = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Name, username),
+                    new Claim(ClaimTypes.Name, _username),
                     new Claim("Token", _token)
                 }, "apiauth_type");
                 var user = new ClaimsPrincipal(identity);
@@ -55,11 +59,11 @@ namespace LoginApp.Data
         public async Task LogoutAsync()
         {
             _token = null;
+            _username = null;
             var identity = new ClaimsIdentity();
             var user = new ClaimsPrincipal(identity);
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
             _logger.LogInformation("User logged out");
         }
-
     }
 }

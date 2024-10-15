@@ -33,6 +33,16 @@
     {
         <p class="token-container">Token: @returnToken</p>
     }
+    @if (claims.Any())
+    {
+        <p>Claims:</p>
+        <ul>
+            @foreach (var claim in claims)
+            {
+                <li>@claim.Type: @claim.Value</li>
+            }
+        </ul>
+    }
 </div>
 
 @code {
