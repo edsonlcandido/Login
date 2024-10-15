@@ -34,6 +34,19 @@ namespace LoginApp
                         ValidAudience = "api-ligas-audience",
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("supersecretkey"))
                     };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                            if (string.IsNullOrEmpty(token))
+                            {
+                                token = context.Request.Query["access_token"];
+                            }
+                            context.Token = token;
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
             builder.WebHost.UseStaticWebAssets();
             var app = builder.Build();

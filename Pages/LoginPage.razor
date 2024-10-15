@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject LoginApp.Services.AuthService AuthService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Login</PageTitle>
 
@@ -40,8 +41,9 @@
         if (!string.IsNullOrEmpty(token))
         {
             // Armazenar o token e navegar para uma página protegida
-            // Para simplicidade, este exemplo apenas navega para a mesma página
-            //Navigation.NavigateTo("/");
+            // Para simplicidade, este exemplo apenas navega para a mesma página            
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+            Navigation.NavigateTo("/counter");
         }
         returnToken = token;
         StateHasChanged();
