@@ -1,12 +1,12 @@
-using Login.Data;
-using Login.Services;
+using LoginApp.Data;
+using LoginApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace Login
+namespace LoginApp
 {
     public class Program
     {
@@ -35,7 +35,7 @@ namespace Login
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("supersecretkey"))
                     };
                 });
-
+            builder.WebHost.UseStaticWebAssets();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

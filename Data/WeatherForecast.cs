@@ -1,4 +1,4 @@
-namespace Login.Data
+namespace LoginApp.Data
 {
     public class WeatherForecast
     {

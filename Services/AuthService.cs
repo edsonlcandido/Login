@@ -1,6 +1,6 @@
 ﻿
 using DotNetEnv;
-namespace Login.Services
+namespace LoginApp.Services
 {
     public class AuthService
     {
