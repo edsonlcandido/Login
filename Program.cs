@@ -2,6 +2,7 @@ using LoginApp.Data;
 using LoginApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -18,9 +19,10 @@ namespace LoginApp
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
             builder.Services.AddSingleton<WeatherForecastService>();
-            builder.Services.AddHttpClient();
+            //builder.Services.AddHttpClient();
             builder.Services.AddHttpClient<AuthService>();
-
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+            builder.Services.AddScoped<CustomAuthenticationStateProvider>();
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -48,6 +50,7 @@ namespace LoginApp
                         }
                     };
                 });
+            builder.Services.AddAuthorization();
             builder.WebHost.UseStaticWebAssets();
             var app = builder.Build();
 

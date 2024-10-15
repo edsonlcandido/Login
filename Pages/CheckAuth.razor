@@ -1,0 +1,37 @@
+﻿@page "/check-auth"
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Check Authentication</h3>
+<CascadingAuthenticationState>
+<AuthorizeView>
+    <Authorized>
+        <p>Você está logado.</p>
+        <p>Claims:</p>
+        <ul>
+            @foreach (var claim in claims)
+            {
+                <li>@claim.Type: @claim.Value</li>
+            }
+        </ul>
+    </Authorized>
+    <NotAuthorized>
+        <p>Você não está logado.</p>
+    </NotAuthorized>
+</AuthorizeView>
+</CascadingAuthenticationState>
+
+@code {
+    private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            claims = user.Claims;
+        }
+    }
+}

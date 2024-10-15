@@ -1,5 +1,8 @@
 ﻿@page "/counter"
 @attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Counter</PageTitle>
 

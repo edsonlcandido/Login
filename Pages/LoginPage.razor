@@ -1,6 +1,11 @@
 ﻿@page "/Login"
 @using Microsoft.AspNetCore.Components.Authorization
-@inject LoginApp.Services.AuthService AuthService
+@using LoginApp.Services
+@using LoginApp.Shared
+@using LoginApp.Data
+@using System.Security.Claims
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
@@ -32,20 +37,36 @@
 
 @code {
     private LoginModel loginModel = new LoginModel();
+    private bool loginFailed;
 
     private string returnToken = "";
+    AuthenticationState? authState;
+    ClaimsPrincipal? user;
+    private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
 
     private async Task HandleLogin()
     {
-        var token = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
-        if (!string.IsNullOrEmpty(token))
+        // var token = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
+        loginFailed = !await AuthenticationStateProvider.LoginAsync(loginModel.Username, loginModel.Password);
+        if (!loginFailed)
         {
             // Armazenar o token e navegar para uma página protegida
-            // Para simplicidade, este exemplo apenas navega para a mesma página            
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
-            Navigation.NavigateTo("/counter");
+            // Para simplicidade, este exemplo apenas navega para a mesma página             
+            //await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+
+            //Navigation.NavigateTo("/check-auth");
+            authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity.IsAuthenticated)
+            {
+                claims = user.Claims;
+            }
+            Navigation.NavigateTo("/check-auth");
         }
-        returnToken = token;
+
+
+        //returnToken = token;
         StateHasChanged();
     }
 
