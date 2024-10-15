@@ -11,19 +11,19 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Login.csproj", "."]
-RUN dotnet restore "./Login.csproj"
+COPY ["LoginApp.csproj", "."]
+RUN dotnet restore "./LoginApp.csproj"
 COPY . .
 WORKDIR "/src/."
-RUN dotnet build "./Login.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./LoginApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Esta fase é usada para publicar o projeto de serviço a ser copiado para a fase final
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Login.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./LoginApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Esta fase é usada na produção ou quando executada no VS no modo normal (padrão quando não está usando a configuração de Depuração)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Login.dll"]
+ENTRYPOINT ["dotnet", "LoginApp.dll"]
