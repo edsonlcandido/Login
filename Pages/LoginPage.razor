@@ -1,4 +1,6 @@
 ﻿@page "/Login"
+@using System.Security.Claims
+@using LoginApp.Providers
 @using Microsoft.AspNetCore.Components.Authorization
 @using LoginApp.Services
 @using LoginApp.Shared
@@ -53,6 +55,9 @@
     AuthenticationState? authState;
     ClaimsPrincipal? user;
     private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
+
+    [CascadingParameter]
+    public HttpContext HttpContext { get; set; } = default!;
 
     private async Task HandleLogin()
     {

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace LoginApp.Data
+namespace LoginApp.Providers
 {
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
