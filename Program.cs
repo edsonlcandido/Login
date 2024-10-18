@@ -1,3 +1,4 @@
+using DotNetEnv;
 using LoginApp.Data;
 using LoginApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,31 +24,23 @@ namespace LoginApp
             builder.Services.AddHttpClient<AuthService>();
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
             builder.Services.AddScoped<CustomAuthenticationStateProvider>();
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            builder.Services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
                 .AddJwtBearer(options =>
                 {
+                    Env.Load();
+                    string jwtKey = Env.GetString("JWT_KEY");
+                    string jwtIssuer = Env.GetString("JWT_ISSUER");
+                    var key = Encoding.ASCII.GetBytes(jwtKey);
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = "api-ligas-issuer",
-                        ValidAudience = "api-ligas-audience",
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("supersecretkey"))
-                    };
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnMessageReceived = context =>
-                        {
-                            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                            if (string.IsNullOrEmpty(token))
-                            {
-                                token = context.Request.Query["access_token"];
-                            }
-                            context.Token = token;
-                            return Task.CompletedTask;
-                        }
+                        IssuerSigningKey = new SymmetricSecurityKey(key)
                     };
                 });
             builder.Services.AddAuthorization();
@@ -59,7 +52,7 @@ namespace LoginApp
             {
                 app.UseExceptionHandler("/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                
+
             }
             app.UseHsts();
             app.UseHttpsRedirection();
