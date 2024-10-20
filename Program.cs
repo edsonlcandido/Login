@@ -25,10 +25,6 @@ namespace LoginApp
             builder.Services.AddHttpClient<AuthService>();
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
             builder.Services.AddScoped<CustomAuthenticationStateProvider>();
-<<<<<<< HEAD
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme);
-=======
             builder.Services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -48,7 +44,6 @@ namespace LoginApp
                         IssuerSigningKey = new SymmetricSecurityKey(key)
                     };
                 });
->>>>>>> d92e6a3dc02436e24a3b65cc5985bc86a79a022c
             builder.Services.AddAuthorization();
             builder.WebHost.UseStaticWebAssets();
             var app = builder.Build();
@@ -58,13 +53,9 @@ namespace LoginApp
             {
                 app.UseExceptionHandler("/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-<<<<<<< HEAD
-                app.UseHsts();
-=======
 
->>>>>>> d92e6a3dc02436e24a3b65cc5985bc86a79a022c
             }
-            
+            app.UseHsts();
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
