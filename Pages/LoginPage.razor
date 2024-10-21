@@ -40,10 +40,12 @@
 @code {
     private LoginRequest loginRequest = new LoginRequest();
     private bool loginFailed;
-    private AuthenticationState authState;
+    //private AuthenticationState authState;
 
     [CascadingParameter]
     public HttpContext HttpContext { get; set; } = default!;
+    [CascadingParameter]
+    private AuthenticationState authState{ get; set; }
 
     private async Task HandleLogin()
     {
@@ -57,5 +59,9 @@
             await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", authToken);
         }
         //StateHasChanged();
+    }
+    protected override Task OnInitializedAsync()
+    {
+        return base.OnInitializedAsync();
     }
 }

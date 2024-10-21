@@ -14,6 +14,13 @@ Welcome to your new app.
 @code {
     protected override async Task OnInitializedAsync()
     {
-        await AuthenticationStateProvider.InitializeAsync();
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // if (firstRender)
+        // {
+        //     await AuthenticationStateProvider.InitializeAsync();
+        // }
     }
 }
