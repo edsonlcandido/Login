@@ -1,15 +1,19 @@
 ﻿@page "/Login"
 @using System.Security.Claims
+@using LoginApp.Models
 @using LoginApp.Providers
+@using LoginApp.Requests
 @using Microsoft.AspNetCore.Components.Authorization
 @using LoginApp.Services
 @using LoginApp.Shared
 @using LoginApp.Data
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject CustomAuthenticationStateProvider AuthenticationStateProvider
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject JwtService JwtService
 
 <PageTitle>Login</PageTitle>
 
@@ -17,77 +21,41 @@
     <div class="form-signin">
         <h3>Login</h3>
         <hr />
-        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+        <EditForm Model="loginRequest" OnValidSubmit="HandleLogin">
             <DataAnnotationsValidator />
             <ValidationSummary />
             <div class="form-group">
                 <label for="exampleInputEmail1">Email address</label>
-                <InputText @bind-Value="loginModel.Username" placeholder="Username" class="form-control" /><br />
+                <InputText @bind-Value="loginRequest.Username" placeholder="Username" class="form-control" /><br />
             </div>
             <div class="form-group">
                 <label for="exampleInputPassword1">Password</label>
-                <InputText @bind-Value="loginModel.Password" placeholder="Password" type="password" class="form-control" /><br />
+                <InputText @bind-Value="loginRequest.Password" placeholder="Password" type="password" class="form-control" /><br />
             </div>
             <button type="submit" class="btn btn-lg btn-primary">Login</button>
         </EditForm>
     </div>
-    @if (returnToken != "")
-    {
-        <p class="token-container">Token: @returnToken</p>
-    }
-    @if (claims.Any())
-    {
-        <p>Claims:</p>
-        <ul>
-            @foreach (var claim in claims)
-            {
-                <li>@claim.Type: @claim.Value</li>
-            }
-        </ul>
-    }
 </div>
 
 @code {
-    private LoginModel loginModel = new LoginModel();
+    private LoginRequest loginRequest = new LoginRequest();
     private bool loginFailed;
-
-    private string returnToken = "";
-    AuthenticationState? authState;
-    ClaimsPrincipal? user;
-    private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
+    private AuthenticationState authState;
 
     [CascadingParameter]
     public HttpContext HttpContext { get; set; } = default!;
 
     private async Task HandleLogin()
     {
-        // var token = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
-        loginFailed = !await AuthenticationStateProvider.LoginAsync(loginModel.Username, loginModel.Password);
-        if (!loginFailed)
+        var response = await AuthService.LoginAsync(loginRequest.Username, loginRequest.Password);
+        if (response.Token != null)
         {
-            // Armazenar o token e navegar para uma página protegida
-            // Para simplicidade, este exemplo apenas navega para a mesma página             
-            //await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
-
-            //Navigation.NavigateTo("/check-auth");
+            //CustomAuthenticationStateProvider customAuthentication = new CustomAuthenticationStateProvider();
+            ClaimsPrincipal claimsPrincipal = AuthenticationStateProvider.MarkUserAsAuthenticated(response);
             authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            if (user.Identity.IsAuthenticated)
-            {
-                claims = user.Claims;
-            }
-            Navigation.NavigateTo("/check-auth");
+            string authToken = JwtService.GenerateSecurityToken(claimsPrincipal);
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", authToken);
         }
-
-
-        //returnToken = token;
-        StateHasChanged();
-    }
-
-    private class LoginModel
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
+        //StateHasChanged();
     }
 }

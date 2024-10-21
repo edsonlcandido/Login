@@ -1,5 +1,6 @@
-﻿
-using DotNetEnv;
+﻿using DotNetEnv;
+using LoginApp.Responses;
+
 namespace LoginApp.Services
 {
     public class AuthService
@@ -13,7 +14,7 @@ namespace LoginApp.Services
             _backendUri = Env.GetString("BACKEND_URI");
         }
 
-        public async Task<string> LoginAsync(string username, string password)
+        public async Task<LoginResponse> LoginAsync(string username, string password)
         {
             var response = await _httpClient.PostAsJsonAsync($"{_backendUri}/api/collections/users/auth-with-password",
                 new { 
@@ -22,8 +23,8 @@ namespace LoginApp.Services
                 }
                 );
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<LoginResult>();
-            return result.Token;
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            return result;
         }
     }
 }

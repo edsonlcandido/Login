@@ -1,11 +1,14 @@
 using DotNetEnv;
 using LoginApp.Data;
 using LoginApp.Providers;
+using LoginApp.Responses;
 using LoginApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -21,10 +24,13 @@ namespace LoginApp
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
             builder.Services.AddSingleton<WeatherForecastService>();
-            //builder.Services.AddHttpClient();
-            builder.Services.AddHttpClient<AuthService>();
+            builder.Services.AddHttpClient();
+            //builder.Services.AddHttpClient<AuthService>();
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
             builder.Services.AddScoped<CustomAuthenticationStateProvider>();
+            builder.Services.AddScoped<AuthService>();
+            builder.Services.AddScoped<JwtService>();
+            builder.Services.AddScoped<ProtectedLocalStorage>();
             builder.Services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -63,13 +69,35 @@ namespace LoginApp
             app.UseRouting();
 
             app.UseAuthentication();
-            app.UseAuthorization();
-            
+            app.UseAuthorization();            
 
             app.MapBlazorHub();
             app.MapFallbackToPage("/_Host");
 
+            //TesteLogin();
+
+            //TesteAuthState(app.Services);
+
             app.Run();
+        }
+
+        static async Task TesteAuthState(IServiceProvider services)
+        {
+            LoginResponse loginResponse = await TesteLogin();
+            var authStateProvider = services.GetRequiredService<CustomAuthenticationStateProvider>();
+
+            authStateProvider.MarkUserAsAuthenticated(loginResponse);
+
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
+            Console.WriteLine(authState.User.Identity.Name);
+        }
+
+        static async Task<LoginResponse> TesteLogin()
+        {
+            HttpClient httpClient = new HttpClient();
+            AuthService authService = new AuthService(httpClient);
+            LoginResponse loginResponse = await authService.LoginAsync("edinho_adm", "12qw!@QW");
+            return loginResponse;
         }
     }
 }

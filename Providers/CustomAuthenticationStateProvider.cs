@@ -1,69 +1,79 @@
-﻿using LoginApp.Services;
+﻿using LoginApp.Models;
+using LoginApp.Responses;
+using LoginApp.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.JSInterop;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace LoginApp.Providers
 {
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
-        private readonly AuthService _authenticationService;
-        private readonly ILogger<CustomAuthenticationStateProvider> _logger;
+        private readonly ProtectedLocalStorage _localStorage;
+        private readonly JwtService _jwtService;
         private string? _token;
-        private string? _username;
-
-        public CustomAuthenticationStateProvider(AuthService authenticationService, ILogger<CustomAuthenticationStateProvider> logger)
+        private ApiUserModel? _user;
+        public CustomAuthenticationStateProvider(ProtectedLocalStorage localStorage, JwtService jwtService)
         {
-            _authenticationService = authenticationService;
-            _logger = logger;
+            _localStorage = localStorage;
+            _jwtService = jwtService;
         }
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            _logger.LogInformation("Getting authentication state");
-            var identity = new ClaimsIdentity();
 
-            if (!string.IsNullOrEmpty(_token))
+            if (string.IsNullOrEmpty(_token))
             {
-                _logger.LogInformation("Token found for user {Username}", _username);
-                identity = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, _username), // Ajuste conforme necessário
-                    new Claim("Token", _token)
-                }, "apiauth_type");
+                var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
+                return new AuthenticationState(anonymousUser);
             }
 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, _user.Username),
+                new Claim(ClaimTypes.Email, _user.Email),
+                new Claim(ClaimTypes.Role, _user.Role),
+                new Claim("Token", _token)
+            };
+            var identity = new ClaimsIdentity(claims, "apiauth_type");
             var user = new ClaimsPrincipal(identity);
-            return await Task.FromResult(new AuthenticationState(user));
+            return new AuthenticationState(user);
         }
-        public async Task<bool> LoginAsync(string username, string password)
-        {
-            var token = await _authenticationService.LoginAsync(username, password);
-            if (token != null)
-            {
-                _token = token;
-                _username = username;
-                var identity = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, _username),
-                    new Claim("Token", _token)
-                }, "apiauth_type");
-                var user = new ClaimsPrincipal(identity);
-                NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
-                _logger.LogInformation("User {Username} logged in with token {Token}", username, token);
 
-                return true;
-            }
-            _logger.LogWarning("Failed login attempt for user {Username}", username);
-            return false;
-        }
-        public async Task LogoutAsync()
+        public async Task InitializeAsync()
         {
-            _token = null;
-            _username = null;
-            var identity = new ClaimsIdentity();
+            //var result = await _localStorage.GetAsync<string>("authToken");
+            //if (result.Success && _jwtService.ValidateToken(result.Value))
+            //{
+            //    string authToken = result.Value;
+            //    // Usar o JwtService para obter as claims do token
+            //    var authTokenClaims = _jwtService.GetClaimsFromToken(authToken).ToList();
+            //    var authTokenIdentity = new ClaimsIdentity(authTokenClaims, "apiauth_type");
+            //    var authTokenUser = new ClaimsPrincipal(authTokenIdentity);
+            //    NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+            //}
+        }
+
+        internal ClaimsPrincipal MarkUserAsAuthenticated(LoginResponse loginResponse)
+        {
+            _token = loginResponse.Token;
+            _user = loginResponse.User;
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, _user.Username),
+                new Claim(ClaimTypes.Email, _user.Email),
+                new Claim(ClaimTypes.Role, _user.Role),
+                new Claim("Token", _token)
+            };
+            var identity = new ClaimsIdentity(claims, "apiauth_type");
             var user = new ClaimsPrincipal(identity);
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
-            _logger.LogInformation("User logged out");
+            return user;
         }
     }
 }
