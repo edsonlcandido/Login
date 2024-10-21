@@ -15,7 +15,6 @@ namespace LoginApp.Providers
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
         private readonly ProtectedLocalStorage _localStorage;
-        private readonly ProtectedSessionStorage _sessionStorage;
         private readonly JwtService _jwtService;
         private readonly IJSRuntime _jsRuntime;
         private bool _isInitialized;
@@ -23,26 +22,33 @@ namespace LoginApp.Providers
         private string? _token;
         private ApiUserModel? _user;
         public CustomAuthenticationStateProvider(ProtectedLocalStorage localStorage, 
-            JwtService jwtService, ProtectedSessionStorage sessionStorage,
-            IJSRuntime jSRuntime)
+            JwtService jwtService, IJSRuntime jSRuntime)
         {
             _localStorage = localStorage;
             _jwtService = jwtService;
-            _sessionStorage = sessionStorage;
             _jsRuntime = jSRuntime;
         }
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             try
             {
-                var claims = _jwtService.GetClaimsFromToken(authToken);
-                var identity = new ClaimsIdentity(claims, "apiauth_type");
-                var user = new ClaimsPrincipal(identity);
-                return new AuthenticationState(user);
+                //var result = await _localStorage.GetAsync<string>("authToken");
+                //authToken = result.Success ? result.Value : null;
+                //_isInitialized = true;
+                if (authToken != null)
+                {
+                    var claims = _jwtService.GetClaimsFromToken(authToken);
+                    var identity = new ClaimsIdentity(claims, "apiauth_type");
+                    var user = new ClaimsPrincipal(identity);
+                    NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+                    return new AuthenticationState(user);
+                }
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
-            catch 
+            catch
             {
                 var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
+                NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
                 return new AuthenticationState(anonymousUser);
             }
         }
@@ -53,7 +59,7 @@ namespace LoginApp.Providers
             _isInitialized = true;
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
-
+        
         internal ClaimsPrincipal MarkUserAsAuthenticated(LoginResponse loginResponse)
         {
             _token = loginResponse.Token;

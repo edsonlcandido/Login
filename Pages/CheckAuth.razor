@@ -25,26 +25,20 @@
 
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState> authState { get; set; }
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
 
     protected override async Task OnInitializedAsync()
     {
-        if (authState != null)
-        {
-            var authStateTask = await authState;
-            claims = authState.Result.User.Claims;
-        }
+
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await CustomAuthenticationStateProvider.InitializeAsync();//.GetAuthenticationStateAsync();
-            authState = CustomAuthenticationStateProvider.GetAuthenticationStateAsync();
-            claims = authState.Result.User.Claims;
-            StateHasChanged();
-        }        
+
+        }
     }
 }
+

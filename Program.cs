@@ -27,6 +27,8 @@ namespace LoginApp
             builder.Services.AddHttpClient();
             //builder.Services.AddHttpClient<AuthService>();
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+            builder.Services.AddScoped(x =>
+                (CustomAuthenticationStateProvider)x.GetRequiredService<AuthenticationStateProvider>());
             builder.Services.AddScoped<CustomAuthenticationStateProvider>();
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<JwtService>();
