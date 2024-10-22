@@ -36,10 +36,12 @@ namespace LoginApp
             builder.Services.AddScoped<JwtService>();
             builder.Services.AddScoped<ProtectedLocalStorage>();
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(opt =>
+                .AddCookie(options =>
                 {
-                    opt.LoginPath = "/login";
-                    opt.ExpireTimeSpan = System.TimeSpan.FromDays(1);
+                    options.Cookie.Name = "auth_cookie";
+                    options.LoginPath = "/login";
+                    options.Cookie.MaxAge = TimeSpan.FromMinutes(60);
+
                 });
             builder.Services.AddAuthorization();
             builder.WebHost.UseStaticWebAssets();

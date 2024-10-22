@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.JSInterop;
 using System.Security.Claims;
@@ -21,6 +22,7 @@ namespace LoginApp.Providers
         private readonly IHttpContextAccessor _httpContextAccessor;
         public CustomAuthenticationStateProvider(IHttpContextAccessor httpContextAccessor)
         {
+            
             _httpContextAccessor = httpContextAccessor;
         }
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -29,7 +31,7 @@ namespace LoginApp.Providers
             return new AuthenticationState(user);
         }
 
-        public void MarkUserAsAuthenticated(LoginResponse loginResponse)
+        public async Task MarkUserAsAuthenticated(LoginResponse loginResponse)
         {
             _token = loginResponse.Token;
             _user = loginResponse.User;
@@ -41,7 +43,7 @@ namespace LoginApp.Providers
                 new Claim(ClaimTypes.Role, _user.Role),
                 new Claim("Token", _token)
             };
-            var identity = new ClaimsIdentity(claims, "auth");
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var user = new ClaimsPrincipal(identity);
 
             var props = new AuthenticationProperties{
@@ -49,12 +51,13 @@ namespace LoginApp.Providers
                 ExpiresUtc = DateTimeOffset.UtcNow.AddDays(1)
             };
 
-            var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext != null)
+            var HttpContext = _httpContextAccessor.HttpContext;
+            
+            if (HttpContext != null)
             {
-                httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, user, props);
+                await HttpContext.SignInAsync(user);
+                NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
             }
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
             //write cookie in local storage
         }
     }
