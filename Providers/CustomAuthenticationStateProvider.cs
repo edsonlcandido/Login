@@ -1,6 +1,8 @@
 ﻿using LoginApp.Models;
 using LoginApp.Responses;
 using LoginApp.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
@@ -14,53 +16,20 @@ namespace LoginApp.Providers
 {
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
-        private readonly ProtectedLocalStorage _localStorage;
-        private readonly JwtService _jwtService;
-        private readonly IJSRuntime _jsRuntime;
-        private bool _isInitialized;
-        private string? authToken;
         private string? _token;
         private ApiUserModel? _user;
-        public CustomAuthenticationStateProvider(ProtectedLocalStorage localStorage, 
-            JwtService jwtService, IJSRuntime jSRuntime)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public CustomAuthenticationStateProvider(IHttpContextAccessor httpContextAccessor)
         {
-            _localStorage = localStorage;
-            _jwtService = jwtService;
-            _jsRuntime = jSRuntime;
+            _httpContextAccessor = httpContextAccessor;
         }
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            try
-            {
-                //var result = await _localStorage.GetAsync<string>("authToken");
-                //authToken = result.Success ? result.Value : null;
-                //_isInitialized = true;
-                if (authToken != null)
-                {
-                    var claims = _jwtService.GetClaimsFromToken(authToken);
-                    var identity = new ClaimsIdentity(claims, "apiauth_type");
-                    var user = new ClaimsPrincipal(identity);
-                    NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-                    return new AuthenticationState(user);
-                }
-                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
-            }
-            catch
-            {
-                var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
-                NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-                return new AuthenticationState(anonymousUser);
-            }
+            var user = _httpContextAccessor.HttpContext.User;
+            return new AuthenticationState(user);
         }
 
-        public async Task InitializeAsync()
-        {
-            authToken = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
-            _isInitialized = true;
-            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-        }
-        
-        internal ClaimsPrincipal MarkUserAsAuthenticated(LoginResponse loginResponse)
+        public void MarkUserAsAuthenticated(LoginResponse loginResponse)
         {
             _token = loginResponse.Token;
             _user = loginResponse.User;
@@ -72,10 +41,21 @@ namespace LoginApp.Providers
                 new Claim(ClaimTypes.Role, _user.Role),
                 new Claim("Token", _token)
             };
-            var identity = new ClaimsIdentity(claims, "apiauth_type");
+            var identity = new ClaimsIdentity(claims, "auth");
             var user = new ClaimsPrincipal(identity);
+
+            var props = new AuthenticationProperties{
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(1)
+            };
+
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext != null)
+            {
+                httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, user, props);
+            }
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
-            return user;
+            //write cookie in local storage
         }
     }
 }

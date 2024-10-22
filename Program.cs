@@ -3,6 +3,7 @@ using LoginApp.Data;
 using LoginApp.Providers;
 using LoginApp.Responses;
 using LoginApp.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -30,27 +31,15 @@ namespace LoginApp
             builder.Services.AddScoped(x =>
                 (CustomAuthenticationStateProvider)x.GetRequiredService<AuthenticationStateProvider>());
             builder.Services.AddScoped<CustomAuthenticationStateProvider>();
+            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<JwtService>();
             builder.Services.AddScoped<ProtectedLocalStorage>();
-            builder.Services.AddAuthentication(options =>
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(opt =>
                 {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(options =>
-                {
-                    Env.Load();
-                    string jwtKey = Env.GetString("JWT_KEY");
-                    string jwtIssuer = Env.GetString("JWT_ISSUER");
-                    var key = Encoding.ASCII.GetBytes(jwtKey);
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(key)
-                    };
+                    opt.LoginPath = "/login";
+                    opt.ExpireTimeSpan = System.TimeSpan.FromDays(1);
                 });
             builder.Services.AddAuthorization();
             builder.WebHost.UseStaticWebAssets();

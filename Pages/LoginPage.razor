@@ -41,6 +41,8 @@
     private LoginRequest loginRequest = new LoginRequest();
     private bool loginFailed;
     //private AuthenticationState authState;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     private async Task HandleLogin()
     {
@@ -48,10 +50,10 @@
         if (response.Token != null)
         {
             //CustomAuthenticationStateProvider customAuthentication = new CustomAuthenticationStateProvider();
-            ClaimsPrincipal claimsPrincipal = AuthenticationStateProvider.MarkUserAsAuthenticated(response);
-            await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            string authToken = JwtService.GenerateSecurityToken(claimsPrincipal);
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", authToken);
+            AuthenticationStateProvider.MarkUserAsAuthenticated(response);
+            //await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            //escreve o authToken como um cookie no navegador
+            //await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", authToken);
         }
         //StateHasChanged();
     }
